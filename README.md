@@ -12,6 +12,6 @@ Please see also [the "Reloadr" site](https://github.com/dbergey/Reloadr).
 ## Installation
 
 1. Download plugin archive and expand.
-2. Upload your plugin's directory and activate the plugin.
+2. Upload to your plugin's directory and activate the plugin.
 3. On "Settings > Reloadr" page, set some options.
 
