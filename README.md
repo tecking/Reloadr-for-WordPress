@@ -4,7 +4,7 @@
 
 A plugin for WordPress.
 
-This is based on "Reloadr" which watches web project files for change, and refreshes their page automatically. This is good for client-side assets(.css, .js) and server-side assets(.php). 
+This is based on "Reloadr" which watches web project files for change, and refreshes their page automatically. This is good for client-side assets(e.g. *.css) and server-side assets(e.g. *.php). 
 
 Awesome scripts "Reloadr" were made by Daniel Bergey(https://github.com/dbergey). Please see also [the "Reloadr" site](https://github.com/dbergey/Reloadr).
 
