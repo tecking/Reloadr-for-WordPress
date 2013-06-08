@@ -49,6 +49,8 @@ class RFW {
 		);
 
 		$args = get_option( $key{$this->option} );
+		$path = null;
+
 		if ( !empty( $args ) ) {
 			$args = explode( ',', get_option( $key{$this->option} ) );
 			if ( is_array( $args ) ) {
