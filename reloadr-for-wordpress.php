@@ -1,8 +1,8 @@
 <?php
 /*
 Plugin Name: Reloadr for WordPress
-Version: 0.1
-Description: A plugin based on "Reloadr" which watches web project files for change, and refreshes their page automatically. This is good for client-side assets(*.css, *.js) and server-side assets(*.php). Awesome scripts "Reloadr" were made by Daniel Bergey(https://github.com/dbergey).
+Version: 0.2
+Description: A plugin based on "Reloadr" which watches web project files for change, and refreshes their page automatically. This is good for client-side assets(e.g. *.css) and server-side assets(e.g. *.php). Awesome scripts "Reloadr" were made by Daniel Bergey(https://github.com/dbergey).
 Author: Tecking
 Author URI: http://www.tecking.org/
 License: GPLv2
@@ -24,63 +24,82 @@ License: GPLv2
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+
+/*
+ * RFW class
+ */
+class RFW {
+	public $option;
+	public function __construct( $option ) {
+		$this->option = $option;
+	}
+
+	public function get_path() {
+		$stylesheet_dir = get_stylesheet_directory();
+		if ( DIRECTORY_SEPARATOR === '\\' ) $stylesheet_dir = str_replace( '\\', '/', $stylesheet_dir );
+
+		$key = array(
+			'client' => 'rfw_client_assets',
+			'server' => 'rfw_server_assets'
+		);
+
+		$default = array(
+			'client' => '"' . get_stylesheet_directory_uri() . '/style.css"',
+			'server' => '"' . $stylesheet_dir . '/*.php"'
+		);
+
+		$args = get_option( $key{$this->option} );
+		if ( !empty( $args ) ) {
+			$args = explode( ',', get_option( $key{$this->option} ) );
+			if ( is_array( $args ) ) {
+				foreach ( $args as $value ) {
+					$value = trim( $value );
+					$path .= ', "' . get_stylesheet_directory_uri() . esc_attr( $value ) . '"';
+				}
+			}
+			else {
+				$args = trim( $args );
+				$path .= ', "' . get_stylesheet_directory_uri() . esc_attr( $args ) . '"';
+			}
+		}
+		return $default{$this->option} . $path;
+	}
+}
+
+
 /*
  * Place code in the head section
  */
 add_action( 'wp_head', 'reloadr_for_wordpress' );
 function reloadr_for_wordpress() {
-	$stylesheet_dir = get_stylesheet_directory();
-	if ( DIRECTORY_SEPARATOR === '\\' ) $stylesheet_dir = str_replace( '\\', '/', $stylesheet_dir );
-
-	$client_default = '"' . get_stylesheet_directory_uri() . '/style.css"';
-	$server_default = '"' . $stylesheet_dir . '/*.php"';
-
-	$clients = get_option( 'rfw_client_assets' );
-	if ( !empty( $clients ) ) {
-		$clients = explode( ',', get_option( 'rfw_client_assets' ) );
-		if ( is_array( $clients ) ) {
-			foreach ( $clients as $value ) {
-				$value = trim( $value );
-				$client .= ', "' . get_stylesheet_directory_uri() . esc_attr( $value ) . '"';
-			}
-		}
-		else {
-			$clients = trim( $clients );
-			$client .= ', "' . get_stylesheet_directory_uri() . esc_attr( $clients ) . '"';
-		}
-	}
-
-	$servers = get_option( 'rfw_server_assets' );
-	if ( !empty( $servers ) ) {
-		$servers = explode( ',', get_option( 'rfw_server_assets' ) );
-		if ( is_array( $servers ) ) {
-			foreach ( $servers as $value ) {
-				$value = trim( $value );
-				$server .= ', "' . $stylesheet_dir . esc_attr( $value ) . '"';
-			}
-		}
-		else {
-			$servers = trim( $servers );
-			$server .= ', "' . $stylesheet_dir . esc_attr( $servers ) . '"';
-		}
-	}
+	$client = new RFW( 'client' );
+	$server = new RFW( 'server' );
 
 	$str  = '<script type="text/javascript" src="' . plugin_dir_url( __FILE__ ) . 'Reloadr/reloadr.js"></script>';
 	$str .= '
 	<script>
 		Reloadr.go({
 			client: [
-				' . $client_default . $client . '
+				' . $client->get_path() . '
 			],
 			server: [
-				' . $server_default . $server . '
+				' . $server->get_path() . '
 			],
 			path: "' . plugin_dir_url( __FILE__ ) . 'Reloadr/reloadr.php"
 		});
 	</script>
 	';
 	echo $str;
+}
 
+
+/*
+ * Remove keys if RFW is uninstalled
+ */
+if ( function_exists( 'register_uninstall_hook' ) ) register_uninstall_hook( __FILE__, 'rfw_uninstall_hook' );
+function rfw_uninstall_hook() {
+	delete_option( 'rfw_client_assets' );
+	delete_option( 'rfw_server_assets' );
 }
 
 
@@ -102,6 +121,7 @@ function rfw_settings() { ?>
 		<h2>Reloadr for WordPress</h2>
 		<form action="options.php" method="post">
 			<?php wp_nonce_field( 'update-options' ); ?>
+			<p>Separate values with commas.</p>
 			<table class="form-table">
 				<tr>
 					<th>Client-side Assets</th>
@@ -119,13 +139,4 @@ function rfw_settings() { ?>
 			<p class="submit"><input type="submit" class="button-primary" value="Save Changes"></p>
 		</form>
 	</div>
-<?php } ?>
-<?php
-/*
- * Remove options if RFW is uninstalled
- */
-if ( function_exists( 'register_uninstall_hook' ) ) register_uninstall_hook( __FILE__, 'rfw_uninstall_hook' );
-function rfw_uninstall_hook() {
-	delete_option( 'rfw_client_assets' );
-	delete_option( 'rfw_server_assets' );
-}
+<?php }
