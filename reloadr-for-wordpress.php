@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Reloadr for WordPress
-Version: 0.2
+Version: 0.2.1
 Description: A plugin based on "Reloadr" which watches web project files for change, and refreshes their page automatically. This is good for client-side assets(e.g. *.css) and server-side assets(e.g. *.php). Awesome scripts "Reloadr" were made by Daniel Bergey(https://github.com/dbergey).
 Author: Tecking
 Author URI: http://www.tecking.org/
@@ -43,9 +43,14 @@ class RFW {
 			'server' => 'rfw_server_assets'
 		);
 
+		$prefix = array(
+			'client' => get_stylesheet_directory_uri(),
+			'server' => $stylesheet_dir
+		);
+
 		$default = array(
-			'client' => '"' . get_stylesheet_directory_uri() . '/style.css"',
-			'server' => '"' . $stylesheet_dir . '/*.php"'
+			'client' => '"' . $prefix{$this->option} . '/style.css"',
+			'server' => '"' . $prefix{$this->option} . '/*.php"'
 		);
 
 		$args = get_option( $key{$this->option} );
@@ -56,12 +61,12 @@ class RFW {
 			if ( is_array( $args ) ) {
 				foreach ( $args as $value ) {
 					$value = trim( $value );
-					$path .= ', "' . get_stylesheet_directory_uri() . esc_attr( $value ) . '"';
+					$path .= ', "' . $prefix{$this->option} . esc_attr( $value ) . '"';
 				}
 			}
 			else {
 				$args = trim( $args );
-				$path .= ', "' . get_stylesheet_directory_uri() . esc_attr( $args ) . '"';
+				$path .= ', "' . $prefix{$this->option} . esc_attr( $args ) . '"';
 			}
 		}
 		return $default{$this->option} . $path;
